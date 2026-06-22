@@ -516,14 +516,57 @@ function initNextCellElements() {
   }
 }
 
+// shape의 채워진 영역을 미리보기 격자 중앙에 맞추기 위한 오프셋
+function getPreviewOffset(shape, gridSize) {
+  let minRow = shape.length;
+  let maxRow = -1;
+  let minCol = shape[0].length;
+  let maxCol = -1;
+
+  for (let shapeRow = 0; shapeRow < shape.length; shapeRow++) {
+    for (let shapeCol = 0; shapeCol < shape[shapeRow].length; shapeCol++) {
+      if (!shape[shapeRow][shapeCol]) {
+        continue;
+      }
+
+      minRow = Math.min(minRow, shapeRow);
+      maxRow = Math.max(maxRow, shapeRow);
+      minCol = Math.min(minCol, shapeCol);
+      maxCol = Math.max(maxCol, shapeCol);
+    }
+  }
+
+  const shapeHeight = maxRow - minRow + 1;
+  const shapeWidth = maxCol - minCol + 1;
+  const offsetRow = Math.floor((gridSize - shapeHeight) / 2) - minRow;
+  const offsetCol = Math.floor((gridSize - shapeWidth) / 2) - minCol;
+
+  return { offsetRow, offsetCol };
+}
+
 function renderNextPiece() {
+  const offset = nextPiece
+    ? getPreviewOffset(nextPiece.shape, PREVIEW_SIZE)
+    : { offsetRow: 0, offsetCol: 0 };
+
   for (let row = 0; row < PREVIEW_SIZE; row++) {
     for (let col = 0; col < PREVIEW_SIZE; col++) {
       const cellIndex = row * PREVIEW_SIZE + col;
       let cellValue = 0;
 
-      if (nextPiece && nextPiece.shape[row][col]) {
-        cellValue = nextPiece.type;
+      if (nextPiece) {
+        const shapeRow = row - offset.offsetRow;
+        const shapeCol = col - offset.offsetCol;
+
+        if (
+          shapeRow >= 0 &&
+          shapeRow < nextPiece.shape.length &&
+          shapeCol >= 0 &&
+          shapeCol < nextPiece.shape[shapeRow].length &&
+          nextPiece.shape[shapeRow][shapeCol]
+        ) {
+          cellValue = nextPiece.type;
+        }
       }
 
       updateCellElement(nextCellElements[cellIndex], cellValue);
