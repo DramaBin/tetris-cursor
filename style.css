@@ -110,6 +110,35 @@ body {
   min-width: 160px;
 }
 
+.next-piece {
+  background-color: #16213e;
+  border: 1px solid #457b9d;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.next-piece__title {
+  font-size: 1rem;
+  margin-bottom: 12px;
+  color: #a8dadc;
+}
+
+.next-board {
+  display: grid;
+  grid-template-columns: repeat(4, 22px);
+  grid-template-rows: repeat(4, 22px);
+  gap: 1px;
+  background-color: #0f0f1a;
+  border: 2px solid #457b9d;
+  padding: 2px;
+  margin: 0 auto;
+}
+
+.next-board .cell {
+  width: 22px;
+  height: 22px;
+}
+
 .btn {
   padding: 12px 24px;
   font-size: 1rem;

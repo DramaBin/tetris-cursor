@@ -19,13 +19,19 @@
 
       <aside class="game__sidebar">
         <button id="start-btn" type="button" class="btn">시작</button>
+
+        <div class="next-piece">
+          <h2 class="next-piece__title">다음 블록</h2>
+          <div id="next-board" class="next-board" aria-label="다음 블록 미리보기"></div>
+        </div>
+
         <div class="controls">
           <h2 class="controls__title">조작법</h2>
           <ul class="controls__list">
             <li><kbd>←</kbd> 왼쪽 이동</li>
             <li><kbd>→</kbd> 오른쪽 이동</li>
             <li><kbd>↓</kbd> 한 칸 빠르게 내리기</li>
-            <li><kbd>↑</kbd> 회전</li>
+            <li><kbd>↑</kbd> 반시계 방향 회전</li>
             <li><kbd>Space</kbd> 즉시 낙하 (hard drop)</li>
           </ul>
         </div>

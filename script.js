@@ -4,6 +4,7 @@
 
 const COLS = 10;
 const ROWS = 20;
+const PREVIEW_SIZE = 4;
 const DROP_INTERVAL = 800;
 const SPAWN_COL = Math.floor((COLS - 4) / 2);
 
@@ -75,6 +76,7 @@ const PIECE_TYPES = Object.keys(PIECES);
 // =============================================================================
 
 const boardElement = document.getElementById("board");
+const nextBoardElement = document.getElementById("next-board");
 const scoreElement = document.getElementById("score");
 const startButton = document.getElementById("start-btn");
 const gameOverElement = document.getElementById("game-over");
@@ -84,8 +86,10 @@ let score = 0;
 let isPlaying = false;
 let isGameOver = false;
 let currentPiece = null;
+let nextPiece = null;
 let dropTimer = null;
 let cellElements = [];
+let nextCellElements = [];
 
 // =============================================================================
 // 보드 데이터
@@ -136,7 +140,7 @@ function cloneShape(shape) {
   return shape.map((row) => [...row]);
 }
 
-function createPiece(type) {
+function createPieceData(type) {
   let pieceType = type || getRandomPieceType();
 
   if (!PIECES[pieceType]) {
@@ -146,19 +150,38 @@ function createPiece(type) {
   return {
     type: pieceType,
     shape: cloneShape(PIECES[pieceType].shape),
+  };
+}
+
+function createPiece(type) {
+  const pieceData = createPieceData(type);
+  return {
+    ...pieceData,
     row: 0,
     col: SPAWN_COL,
   };
 }
 
-function rotateMatrix(shape) {
+function takeNextPiece() {
+  const piece = {
+    type: nextPiece.type,
+    shape: cloneShape(nextPiece.shape),
+    row: 0,
+    col: SPAWN_COL,
+  };
+  nextPiece = createPieceData();
+  return piece;
+}
+
+// 시계 반시계 방향 90도 회전
+function rotateMatrixCounterClockwise(shape) {
   const size = shape.length;
   const rotated = [];
 
   for (let row = 0; row < size; row++) {
     rotated[row] = [];
     for (let col = 0; col < size; col++) {
-      rotated[row][col] = shape[size - 1 - col][row];
+      rotated[row][col] = shape[col][size - 1 - row];
     }
   }
 
@@ -304,7 +327,7 @@ function lockAndSpawnNext() {
   }
 
   applyLineClearScore(clearLines());
-  currentPiece = createPiece();
+  currentPiece = takeNextPiece();
 
   if (!canMove(currentPiece, 0, 0, board)) {
     handleGameOver();
@@ -317,6 +340,7 @@ function lockAndSpawnNext() {
 function finalizePieceLock() {
   if (!lockAndSpawnNext()) {
     renderBoard();
+    renderNextPiece();
   }
 }
 
@@ -327,6 +351,7 @@ function handleGameOver() {
   stopDropLoop();
   renderGameOver();
   renderBoard();
+  renderNextPiece();
 }
 
 function dropPiece() {
@@ -363,7 +388,7 @@ function tryRotatePiece() {
   }
 
   const originalShape = cloneShape(currentPiece.shape);
-  currentPiece.shape = rotateMatrix(currentPiece.shape);
+  currentPiece.shape = rotateMatrixCounterClockwise(currentPiece.shape);
 
   if (!canMove(currentPiece, 0, 0, board)) {
     currentPiece.shape = originalShape;
@@ -477,6 +502,35 @@ function initCellElements() {
   }
 }
 
+function initNextCellElements() {
+  nextBoardElement.innerHTML = "";
+  nextCellElements = [];
+
+  for (let row = 0; row < PREVIEW_SIZE; row++) {
+    for (let col = 0; col < PREVIEW_SIZE; col++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      nextBoardElement.appendChild(cell);
+      nextCellElements.push(cell);
+    }
+  }
+}
+
+function renderNextPiece() {
+  for (let row = 0; row < PREVIEW_SIZE; row++) {
+    for (let col = 0; col < PREVIEW_SIZE; col++) {
+      const cellIndex = row * PREVIEW_SIZE + col;
+      let cellValue = 0;
+
+      if (nextPiece && nextPiece.shape[row][col]) {
+        cellValue = nextPiece.type;
+      }
+
+      updateCellElement(nextCellElements[cellIndex], cellValue);
+    }
+  }
+}
+
 function renderBoard() {
   const displayBoard = drawPiece(board, currentPiece);
 
@@ -498,6 +552,7 @@ function renderGameOver() {
 
 function renderAll() {
   renderBoard();
+  renderNextPiece();
   renderScore();
   renderGameOver();
 }
@@ -511,7 +566,8 @@ function resetGameState() {
   score = 0;
   isPlaying = true;
   isGameOver = false;
-  currentPiece = createPiece();
+  nextPiece = createPieceData();
+  currentPiece = takeNextPiece();
 }
 
 function initGame() {
@@ -524,7 +580,9 @@ function initGame() {
 
 board = createEmptyBoard();
 initCellElements();
+initNextCellElements();
 renderBoard();
+renderNextPiece();
 renderScore();
 
 startButton.addEventListener("click", initGame);
